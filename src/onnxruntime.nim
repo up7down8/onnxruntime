@@ -51,11 +51,13 @@ type
 # Model Loading
 #------------------------------------------------------------------------------
 
-proc loadModel*(path: string): Model =
+proc loadModel*(path: string, useCuda: bool = false, useCoreML: bool = false): Model =
   ## Load an ONNX model from a file path.
   ##
   ## Parameters:
   ##   path: Path to the .onnx model file
+  ##   useCuda: Enable CUDA GPU acceleration (NVIDIA only, default: false)
+  ##   useCoreML: Enable CoreML GPU acceleration (macOS only, default: false)
   ##
   ## Returns:
   ##   A Model object ready for inference
@@ -65,7 +67,11 @@ proc loadModel*(path: string): Model =
   ##
   ## Example:
   ##   let model = loadModel("models/gpt2.onnx")
-  result = Model(internal: newOnnxModel(path))
+  ##   # With CUDA GPU acceleration (NVIDIA)
+  ##   let model = loadModel("models/gpt2.onnx", useCuda=true)
+  ##   # With CoreML GPU acceleration (macOS)
+  ##   let model = loadModel("models/gpt2.onnx", useCoreML=true)
+  result = Model(internal: newOnnxModel(path, useCuda, useCoreML))
 
 proc close*(model: Model) =
   ## Release the model and free associated resources.

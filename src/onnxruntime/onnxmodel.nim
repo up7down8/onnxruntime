@@ -46,11 +46,15 @@ proc getSession*(model: OnnxModel): OrtSession =
   ## Get the underlying ONNX session
   result = model.session
 
-proc newOnnxModel*(modelPath: string): OnnxModel =
+proc newOnnxModel*(modelPath: string, useCuda: bool = false, useCoreML: bool = false): OnnxModel =
   ## Create a new ONNX model session from a file path
   ## 
   ## Example:
   ##   let model = newOnnxModel("tests/model.onnx")
+  ##   # With CUDA GPU acceleration (NVIDIA)
+  ##   let model = newOnnxModel("tests/model.onnx", useCuda=true)
+  ##   # With CoreML GPU acceleration (macOS)
+  ##   let model = newOnnxModel("tests/model.onnx", useCoreML=true)
   ##
   result = new(OnnxModel)
   
@@ -85,6 +89,19 @@ proc newOnnxModel*(modelPath: string): OnnxModel =
       ReleaseEnv(result.env)
       result.env = nil
     checkStatus(status)
+  
+  # Enable GPU acceleration if requested
+  if useCuda:
+    status = SessionOptionsAppendExecutionProvider_CUDA(result.options, 0)  # Use device 0
+    if status != nil:
+      # CUDA not available, fall back to CPU
+      echo "CUDA GPU acceleration not available, falling back to CPU"
+  
+  if useCoreML:
+    status = SessionOptionsAppendExecutionProvider_CoreML(result.options)
+    if status != nil:
+      # CoreML not available, fall back to CPU
+      echo "CoreML GPU acceleration not available, falling back to CPU"
   
   # Load the model from file
   # This loads the model architecture and weights into memory
