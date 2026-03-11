@@ -4,6 +4,7 @@
 nimbledeps/
 tests/testdata
 output.json
+speaker_samples/
 TinyStories-1M-ONNX/
 tests/data/output.json
 *.rdb

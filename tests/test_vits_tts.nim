@@ -63,7 +63,7 @@ proc writeWavFile(path: string, pcmData: seq[int16], sampleRate: int) =
     discard f.writeBuffer(sample.addr, sizeof(int16))
 
 suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
-  
+
   test "Load lexicon and tokens":
     if not fileExists(LexiconPath):
       echo "Skipping: Lexicon file not found: ", LexiconPath
@@ -77,19 +77,19 @@ suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
     else:
       let lexicon = loadLexicon(LexiconPath)
       let tokens = loadTokens(TokensPath)
-      
+
       check lexicon.len() > 0
       check tokens.len() > 0
-      
+
       echo "Loaded ", lexicon.len(), " lexicon entries"
       echo "Loaded ", tokens.len(), " tokens"
-      
+
       # Check some specific characters
       if lexicon.hasKey("你"):
         echo "你 -> phonemes: ", lexicon["你"].phonemes
       if lexicon.hasKey("好"):
         echo "好 -> phonemes: ", lexicon["好"].phonemes
-  
+
   test "Convert Chinese characters to token IDs":
     if not fileExists(LexiconPath) or not fileExists(TokensPath):
       echo "Skipping: Lexicon or tokens not found"
@@ -97,7 +97,7 @@ suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
     else:
       let lexicon = loadLexicon(LexiconPath)
       let tokens = loadTokens(TokensPath)
-      
+
       # Test character to phoneme and tone conversion
       let (phonemes, tones) = charactersToPhonemesAndTones(TestChinese, lexicon)
       echo "Input: ", TestChinese
@@ -105,17 +105,17 @@ suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
       echo "Tones: ", tones
       check phonemes.len > 0
       check tones.len > 0
-      
+
       # Test phoneme to token ID conversion (without blanks)
       let tokenIds = phonemesToIds(phonemes, tokens, addBlank = false)
       echo "Token IDs: ", tokenIds
       check tokenIds.len > 0
-      
+
       # Test combined function
       let tokenIds2 = textToTokenIds(TestChinese, lexicon, tokens)
       check tokenIds2.len > 0
       check tokenIds == tokenIds2
-  
+
   test "Full pipeline - Chinese text to WAV file":
     if not fileExists(ModelPath):
       echo "Skipping: Model not found: ", ModelPath
@@ -130,42 +130,42 @@ suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
       # Load resources
       let lexicon = loadLexicon(LexiconPath)
       let tokens = loadTokens(TokensPath)
-      
+
       check lexicon.len() > 0
       check tokens.len() > 0
-      
+
       # Convert Chinese text to token IDs
       let tokenIds = textToTokenIds(TestChinese, lexicon, tokens)
       check tokenIds.len > 0
       echo "Token IDs for '", TestChinese, "': ", tokenIds
-      
+
       # Load model and run inference
       let model = loadModel(ModelPath)
-      
+
       # AISHELL3 model (174 speakers, use sid=0)
       let output = runVitsTTS(
-        model, 
+        model,
         tokenIds,
-        sid = 0,
+        sid = 108,
         noiseScale = 0.667'f32,
         lengthScale = 1.0'f32,
         noiseScaleW = 0.8'f32
       )
-      
+
       check output.data.len > 0
       echo "Generated ", output.data.len, " audio samples (~", output.data.len / 8000, " seconds)"
-      
+
       # Convert to int16
       let samples = output.toInt16Samples()
-      
+
       # Save to WAV file (AISHELL3 uses 8000 Hz sample rate)
       let outputPath = TestDataDir / "test_output.wav"
       writeWavFile(outputPath, output.toInt16Samples(), 8000)
       check fileExists(outputPath)
       echo "Saved output to: ", outputPath
-      
+
       model.close()
-  
+
   test "Test with different speed (length scale)":
     if not fileExists(ModelPath) or not fileExists(LexiconPath) or not fileExists(TokensPath):
       echo "Skipping: Model, lexicon or tokens not found"
@@ -174,24 +174,24 @@ suite "Sherpa-ONNX VITS TTS (AISHELL3 Chinese)":
       let lexicon = loadLexicon(LexiconPath)
       let tokens = loadTokens(TokensPath)
       let tokenIds = textToTokenIds("你好", lexicon, tokens)
-      
+
       let model = loadModel(ModelPath)
-      
+
       # Test with slower speed
       let outputSlow = runVitsTTS(
         model, tokenIds,
         lengthScale = 1.5'f32  # Slower
       )
-      
-      # Test with faster speed  
+
+      # Test with faster speed
       let outputFast = runVitsTTS(
         model, tokenIds,
         lengthScale = 0.7'f32  # Faster
       )
-      
+
       # Slower should produce more samples
       check outputSlow.data.len > outputFast.data.len
       echo "Slow (1.5x): ", outputSlow.data.len, " samples"
       echo "Fast (0.7x): ", outputFast.data.len, " samples"
-      
+
       model.close()
