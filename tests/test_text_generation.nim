@@ -8,7 +8,7 @@ import sets
 import json
 
 
-import onnxruntime, gpt_neo_utils, bpe_tokenizer
+import onnx_rt, gpt_neo_utils, bpe_tokenizer
 
 
 type

@@ -4,8 +4,8 @@
 
 
 import std/[unittest, os, json, strutils]
-import onnxruntime
-import onnxruntime/ort_bindings
+import onnx_rt
+import onnx_rt/ort_bindings
 import whisper_utils
 
 const TestDataDir = currentSourcePath().parentDir / "testdata" / "whisper-large-v3-zh"

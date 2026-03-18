@@ -42,7 +42,7 @@ nim c -d:ortPath=/opt/onnxruntime -d:OrtApiVersion=20 your_app.nim
 ## Quick Start
 
 ```nim
-import onnxruntime
+import onnx_rt
 
 # Load the model
 let model = loadModel("path/to/model.onnx")
@@ -116,7 +116,7 @@ echo "Model outputs: ", outputNames
 The low-level API is still available for advanced use cases:
 
 ```nim
-import onnxruntime
+import onnx_rt
 
 # Using low-level API (requires manual checkStatus calls)
 let model = newOnnxModel("path/to/model.onnx")
@@ -131,7 +131,7 @@ The `tests/` directory contains application-level utilities for specific model t
 ### GPT-Neo / Text Generation Models
 
 ```nim
-import onnxruntime
+import onnx_rt
 import gpt_neo_utils  # Application-level utilities
 
 let model = loadModel("models/tinystories.onnx")

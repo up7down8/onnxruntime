@@ -2,8 +2,8 @@
 ## Piper TTS model specific utilities
 ## This is application-level code, not part of the core onnxruntime library
 
-import onnxruntime
-import onnxruntime/ort_bindings
+import onnx_rt
+import onnx_rt/ort_bindings
 
 # Re-export types needed by users of this module
 export InputTensor, OutputTensor, Model

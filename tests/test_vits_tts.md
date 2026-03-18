@@ -64,7 +64,7 @@ nim c -r tests/test_vits_tts.nim
 ## API 使用示例
 
 ```nim
-import onnxruntime, vits_utils
+import onnx_rt, vits_utils
 
 # 加载模型、lexicon 和 tokens
 let model = loadModel("model.onnx")

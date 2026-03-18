@@ -1,4 +1,4 @@
-## onnxruntime - High-level ONNX Runtime wrapper for Nim
+## onnx_rt - High-level ONNX Runtime wrapper for Nim
 ##
 ## This module provides a high-level, user-friendly interface for loading and running
 ## ONNX models. All low-level error handling is managed internally - users don't need
@@ -6,7 +6,7 @@
 ##
 ## Example usage:
 ##
-##   import onnxruntime
+##   import onnx_rt
 ##
 ##   # Load the model
 ##   let model = loadModel("path/to/model.onnx")
@@ -20,7 +20,7 @@
 ##   echo output.shape   # [1, 4, vocab_size]
 ##   echo output.data    # Raw logits
 
-import onnxruntime/[onnxmodel, ort_bindings]
+import onnx_rt/[onnxmodel, ort_bindings]
 
 # Re-export types that users need
 export OnnxInputTensor, OnnxOutputTensor

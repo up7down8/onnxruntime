@@ -2,7 +2,7 @@
 ## Test Whisper ONNX model for ASR (Automatic Speech Recognition)
 
 import std/[unittest, os]
-import onnxruntime, whisper_utils
+import onnx_rt, whisper_utils
 import std/json
 
 const TestDataDir = currentSourcePath().parentDir / "testdata" / "whisper-large-v3-zh"

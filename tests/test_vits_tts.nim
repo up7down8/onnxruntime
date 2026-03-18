@@ -11,7 +11,7 @@ import unittest
 import os
 import tables
 
-import onnxruntime, vits_utils
+import onnx_rt, vits_utils
 
 # Test paths
 # Using vits-icefall-zh-aishell3 (174 speakers, Pinyin-based)

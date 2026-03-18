@@ -3,7 +3,7 @@
 ## 为所有说话人生成测试音频并生成 HTML 浏览页面
 
 import std/[os, strutils, tables, sequtils, times, strformat]
-import onnxruntime, vits_utils
+import onnx_rt, vits_utils
 
 # ==================== 配置区域 ====================
 const

@@ -3,7 +3,7 @@
 ## Model: https://huggingface.co/firefoxrecap/URL-TITLE-classifier
 
 import std/[unittest, os, json, math, tables]
-import onnxruntime
+import onnx_rt
 import ./bpe_tokenizer
 
 const TestDir = currentSourcePath().parentDir / "testdata" / "url-title-classifier"

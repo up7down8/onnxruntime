@@ -7,8 +7,8 @@
 ## - Lexicon maps characters to phonemes
 ## - Tokens are phonemes from tokens.txt
 
-import onnxruntime
-import onnxruntime/ort_bindings
+import onnx_rt
+import onnx_rt/ort_bindings
 import std/[strutils, tables, unicode]
 
 # Re-export types needed by users of this module

@@ -2,8 +2,8 @@
 ## GPT-Neo model specific utilities for text generation
 ## This is application-level code, not part of the core onnxruntime library
 
-import onnxruntime
-import onnxruntime/onnxmodel
+import onnx_rt
+import onnx_rt/onnxmodel
 
 # Re-export types needed by users of this module
 export InputTensor, OutputTensor, Model, OnnxNeoOutput, batchSize, seqLen

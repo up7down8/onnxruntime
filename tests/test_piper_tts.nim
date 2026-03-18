@@ -6,7 +6,7 @@ import json
 import tables
 import os
 
-import onnxruntime, piper_utils
+import onnx_rt, piper_utils
 
 # Test paths
 const TestDataDir = "tests/testdata/piper-voices"
