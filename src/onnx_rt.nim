@@ -23,11 +23,11 @@
 import onnx_rt/[onnxmodel, ort_bindings]
 
 # Re-export types that users need
-export OnnxInputTensor, OnnxOutputTensor
+export OnnxInputTensor, OnnxInputTensorFloat32, OnnxOutputTensor
 export OnnxRuntimeError, OrtLoggingLevel, ONNXTensorElementDataType, OrtErrorCode
 
 # Re-export low-level API for backward compatibility and advanced use
-export OnnxModel, newOnnxModel, close, runInference
+export OnnxModel, newOnnxModel, close, runInference, runInferenceFloat32
 export runInferenceNeo, runInferenceNeoComplete, runInferenceNeoWithCache
 export runInferenceMultiInput, NamedInputTensor
 export getModelOutputNames, checkStatus, getSession, ReleaseValue
@@ -41,6 +41,7 @@ type
 
 type
   InputTensor* = OnnxInputTensor
+  InputTensorFloat32* = OnnxInputTensorFloat32
   OutputTensor* = OnnxOutputTensor
 
 proc loadModel*(path: string, useCuda: bool = false, useCoreML: bool = false): Model =
@@ -56,21 +57,22 @@ proc newInputTensor*(data: seq[int64], shape: seq[int64]): InputTensor =
   ## Create a new input tensor with the given data and shape.
   result = InputTensor(data: data, shape: shape)
 
-proc newInputTensor*(data: seq[float32], shape: seq[int64]): InputTensor =
+proc newInputTensor*(data: seq[float32], shape: seq[int64]): InputTensorFloat32 =
   ## Create a new input tensor with float32 data.
-  ## Note: Data is converted to int64 format internally for compatibility.
-  var intData = newSeq[int64](data.len)
-  for i in 0 ..< data.len:
-    intData[i] = data[i].int64
-  result = OnnxInputTensor(data: intData, shape: shape)
+  ## Use this for vision models (e.g., OCR, image classification).
+  result = InputTensorFloat32(data: data, shape: shape)
 
 proc newOutputTensor*(data: seq[float32], shape: seq[int64]): OutputTensor =
   ## Create a new output tensor (mainly for testing/debugging).
   result = OnnxOutputTensor(data: data, shape: shape)
 
 proc run*(model: Model, input: InputTensor, inputName = "input", outputName = "output"): OutputTensor =
-  ## Run inference on the model with a single input tensor.
+  ## Run inference on the model with a single input tensor (int64).
   result = runInference(model.internal, input, inputName, outputName)
+
+proc run*(model: Model, input: InputTensorFloat32, inputName = "input", outputName = "output"): OutputTensor =
+  ## Run inference on the model with a float32 input tensor (for vision models).
+  result = runInferenceFloat32(model.internal, input, inputName, outputName)
 
 proc getOutputNames*(model: Model): seq[string] =
   ## Get the names of all output nodes in the model.

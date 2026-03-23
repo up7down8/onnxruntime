@@ -16,11 +16,18 @@ type OnnxRuntimeError* = object of CatchableError
 ## Type representing a tensor input for the model
 type
   OnnxInputTensor* = object
-    ## Input tensor data for ONNX inference
+    ## Input tensor data for ONNX inference (int64, for GPT-like models)
     ## `data`: The flattened array of values (e.g., token IDs)
     ## `shape`: The shape of the tensor (e.g., [batch_size, sequence_length])
     data*: seq[int64]   # Token IDs as int64 (common for GPT models)
     shape*: seq[int64]  # Tensor shape with batch dimension
+
+  OnnxInputTensorFloat32* = object
+    ## Input tensor data for ONNX inference (float32, for vision models like OCR)
+    ## `data`: The flattened array of float32 values
+    ## `shape`: The shape of the tensor (e.g., [batch_size, channels, height, width])
+    data*: seq[float32]  # Image pixels as float32
+    shape*: seq[int64]   # Tensor shape with batch dimension
 
   OnnxOutputTensor* = object
     ## Output tensor from ONNX inference
@@ -220,6 +227,124 @@ proc runInference*(
   
   # Cast to tensor info to get shape and data
   # Note: tensorInfo is just a view into typeInfo, don't release it separately
+  var tensorInfo: OrtTensorTypeAndShapeInfo
+  status = CastTypeInfoToTensorInfo(typeInfo, tensorInfo.addr)
+  checkStatus(status)
+  
+  # Get output tensor dimensions
+  var dimsCount: csize_t
+  status = GetDimensionsCount(tensorInfo, dimsCount.addr)
+  checkStatus(status)
+  
+  var outputShape = newSeq[int64](dimsCount)
+  if dimsCount > 0:
+    status = GetDimensions(tensorInfo, outputShape[0].addr, dimsCount)
+    checkStatus(status)
+  
+  # Get pointer to output data
+  var outputDataPtr: pointer
+  status = GetTensorMutableData(outputOrtValue, outputDataPtr.addr)
+  checkStatus(status)
+  
+  # Get total element count
+  var elemCount: csize_t
+  status = GetTensorShapeElementCount(tensorInfo, elemCount.addr)
+  checkStatus(status)
+  
+  # Copy data from OrtValue to Nim seq
+  let floatPtr = cast[ptr UncheckedArray[float32]](outputDataPtr)
+  var outputData = newSeq[float32](elemCount)
+  for i in 0 ..< elemCount.int:
+    outputData[i] = floatPtr[i]
+  
+  # Return result
+  result = OnnxOutputTensor(
+    data: outputData,
+    shape: outputShape
+  )
+
+## Float32 input tensor inference (for vision models like OCR)
+proc runInferenceFloat32*(
+  model: OnnxModel,
+  inputTensor: OnnxInputTensorFloat32,
+  inputName: string = "input",
+  outputName: string = "output"
+): OnnxOutputTensor =
+  ## Run inference on the model with float32 input tensor (for vision models)
+  ##
+  ## Parameters:
+  ##   inputTensor: The float32 input data and shape (e.g., normalized image pixels)
+  ##   inputName: Name of the input node in the ONNX graph (default: "input")
+  ##   outputName: Name of the output node in the ONNX graph (default: "output")
+  ##
+  ## Returns:
+  ##   The output tensor with model outputs
+  ##
+  ## Example:
+  ##   let input = OnnxInputTensorFloat32(data: @[0.5'f32, -0.3, 1.2], shape: @[1'i64, 3])
+  ##   let output = model.runInferenceFloat32(input)
+  ##
+  var status: OrtStatusPtr
+  
+  # Validate input
+  if inputTensor.data.len == 0:
+    raise newException(Exception, "Input tensor data cannot be empty")
+  if inputTensor.shape.len == 0:
+    raise newException(Exception, "Input tensor shape cannot be empty")
+  
+  # Create CPU memory info for tensor allocation
+  var memoryInfo: OrtMemoryInfo
+  status = CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, memoryInfo.addr)
+  checkStatus(status)
+  defer:
+    ReleaseMemoryInfo(memoryInfo)
+  
+  # Create input tensor from float32 data
+  var inputOrtValue: OrtValue = nil
+  let dataSize = inputTensor.data.len * sizeof(float32)
+  status = CreateTensorWithDataAsOrtValue(
+    memoryInfo,
+    inputTensor.data[0].unsafeAddr,
+    dataSize.csize_t,
+    inputTensor.shape[0].unsafeAddr,
+    inputTensor.shape.len.csize_t,
+    ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT,
+    inputOrtValue.addr
+  )
+  checkStatus(status)
+  defer:
+    if inputOrtValue != nil:
+      ReleaseValue(inputOrtValue)
+  
+  # Prepare input name as C string
+  let inputNameC = inputName.cstring
+  let outputNameC = outputName.cstring
+  
+  # Run inference
+  var outputOrtValue: OrtValue = nil
+  status = Run(
+    model.session,
+    nil,  # run_options
+    inputNameC.addr,
+    inputOrtValue.addr,
+    1.csize_t,
+    outputNameC.addr,
+    1.csize_t,
+    outputOrtValue.addr
+  )
+  checkStatus(status)
+  defer:
+    if outputOrtValue != nil:
+      ReleaseValue(outputOrtValue)
+  
+  # Get output type info
+  var typeInfo: OrtTypeInfo
+  status = GetTypeInfo(outputOrtValue, typeInfo.addr)
+  checkStatus(status)
+  defer:
+    ReleaseTypeInfo(typeInfo)
+  
+  # Cast to tensor info to get shape and data
   var tensorInfo: OrtTensorTypeAndShapeInfo
   status = CastTypeInfoToTensorInfo(typeInfo, tensorInfo.addr)
   checkStatus(status)
