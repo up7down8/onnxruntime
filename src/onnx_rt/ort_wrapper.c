@@ -84,6 +84,11 @@ OrtStatus* ort_SessionOptionsAppendExecutionProvider_CoreML(OrtSessionOptions* o
     return g_ort->SessionOptionsAppendExecutionProvider(options, "CoreML", NULL, NULL, 0);
 }
 
+OrtStatus* ort_SessionOptionsAppendExecutionProvider_NNAPI(OrtSessionOptions* options) {
+    if (ort_init() != 0) return NULL;
+    return g_ort->SessionOptionsAppendExecutionProvider(options, "Nnapi", NULL, NULL, 0);
+}
+
 /* MemoryInfo */
 OrtStatus* ort_CreateCpuMemoryInfo(OrtAllocatorType type, OrtMemType mem_type, OrtMemoryInfo** out) {
     if (ort_init() != 0) return NULL;

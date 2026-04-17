@@ -44,9 +44,9 @@ type
   InputTensorFloat32* = OnnxInputTensorFloat32
   OutputTensor* = OnnxOutputTensor
 
-proc loadModel*(path: string, useCuda: bool = false, useCoreML: bool = false): Model =
+proc loadModel*(path: string, useCuda: bool = false, useCoreML: bool = false, useNnapi: bool = false): Model =
   ## Load an ONNX model from a file path.
-  result = Model(internal: newOnnxModel(path, useCuda, useCoreML))
+  result = Model(internal: newOnnxModel(path, useCuda, useCoreML, useNnapi))
 
 proc close*(model: Model) =
   ## Release the model and free associated resources.

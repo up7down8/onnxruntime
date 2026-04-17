@@ -178,6 +178,7 @@ proc ReleaseSessionOptions*(options: OrtSessionOptions) {.importc: "ort_ReleaseS
 proc EnableCpuMemArena*(options: OrtSessionOptions): OrtStatusPtr {.importc: "ort_EnableCpuMemArena", cdecl.}
 proc SessionOptionsAppendExecutionProvider_CUDA*(options: OrtSessionOptions, device_id: cint): OrtStatusPtr {.importc: "ort_SessionOptionsAppendExecutionProvider_CUDA", cdecl.}
 proc SessionOptionsAppendExecutionProvider_CoreML*(options: OrtSessionOptions): OrtStatusPtr {.importc: "ort_SessionOptionsAppendExecutionProvider_CoreML", cdecl.}
+proc SessionOptionsAppendExecutionProvider_NNAPI*(options: OrtSessionOptions): OrtStatusPtr {.importc: "ort_SessionOptionsAppendExecutionProvider_NNAPI", cdecl.}
 
 proc CreateCpuMemoryInfo*(`type`: OrtAllocatorType, mem_type: OrtMemType, outs: ptr OrtMemoryInfo): OrtStatusPtr {.importc: "ort_CreateCpuMemoryInfo", cdecl.}
 proc ReleaseMemoryInfo*(info: OrtMemoryInfo) {.importc: "ort_ReleaseMemoryInfo", cdecl.}

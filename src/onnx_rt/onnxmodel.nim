@@ -53,7 +53,7 @@ proc getSession*(model: OnnxModel): OrtSession =
   ## Get the underlying ONNX session
   result = model.session
 
-proc newOnnxModel*(modelPath: string, useCuda: bool = false, useCoreML: bool = false): OnnxModel =
+proc newOnnxModel*(modelPath: string, useCuda: bool = false, useCoreML: bool = false, useNnapi: bool = false): OnnxModel =
   ## Create a new ONNX model session from a file path
   ## 
   ## Example:
@@ -109,6 +109,12 @@ proc newOnnxModel*(modelPath: string, useCuda: bool = false, useCoreML: bool = f
     if status != nil:
       # CoreML not available, fall back to CPU
       echo "CoreML GPU acceleration not available, falling back to CPU"
+
+  if useNnapi:
+    status = SessionOptionsAppendExecutionProvider_NNAPI(result.options)
+    if status != nil:
+      # NNAPI not available, fall back to CPU
+      echo "NNAPI acceleration not available, falling back to CPU"
   
   # Load the model from file
   # This loads the model architecture and weights into memory
